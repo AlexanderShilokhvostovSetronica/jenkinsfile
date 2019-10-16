@@ -1,0 +1,55 @@
+#!/usr/bin/env groovy
+
+properties([
+        parameters([
+                [$class: 'ChoiceParameter',
+                     choiceType: 'PT_SINGLE_SELECT',
+                     description: 'Please Provide the name of combostack ',
+                     filterLength: 1,
+                     filterable: true,
+                     name: 'List',
+                     randomName: 'choice-parameter-39265393268865',
+                     script: [
+                        $class: 'GroovyScript',
+                        fallbackScript: [
+                            classpath: [],
+                            sandbox: true,
+                            script: 'return["error-ertweterwt"]'
+                        ],
+                        script: [
+                            classpath: [],
+                            sandbox: false,
+                            script:
+'''
+def nexus_url = 'http://10.0.10.54'
+def group_id = 'Nexus.nexus'
+def versions = ['DoNotRemove']
+def parser = new XmlParser();
+def xml = parser.parse("${nexus_url}/nexus");
+versions.addAll(
+     xml['data']['artifact']['version'].collect {
+         it->it.value().text()
+     }
+     .sort()
+     .unique()
+)
+return versions
+'''
+                        ]
+                     ]
+                ]
+        ])
+])
+
+pipeline {
+    agent any
+    stages {
+        stage('Echo params') {
+            steps {
+                script {
+                    sh "echo params list = ${params.List}"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,49 @@
+#!/usr/bin/env groovy
+
+def getStackList() {
+    return ["1111","2222","3333","4444"]
+}
+
+pipeline {
+    agent any
+    stages {
+        stage('job parameters') {
+            steps {
+                timeout(time: 300, unit: 'SECONDS') {
+                    script {
+                        input message: '',
+                        parameters: [[
+                            $class: 'ChoiceParameter',
+                            choiceType: 'PT_SINGLE_SELECT',
+                            description: 'Please Provide the name of combostack',
+                            filterLength: 1,
+                            filterable: true,
+                            name: 'List',
+                            randomName: 'choice-parameter-73535330342108',
+                            script: [
+                                $class: 'GroovyScript',
+                                fallbackScript: [
+                                    classpath: [],
+                                    sandbox: false,
+                                    script: 'return["Some error happened"]'
+                                ],
+                                script: [
+                                    classpath: [],
+                                    sandbox: false,
+                                    script: 'return["1111","22222","33333","44444"]'
+                                ]
+                            ]
+                        ]]
+                    }
+                }
+            }
+        }
+        stage('Echo params') {
+            steps {
+                script {
+                    sh "echo Stack name is ${env.STACKNAME}, Env list is ${params.List}"
+                }
+            }
+        }
+    }
+}

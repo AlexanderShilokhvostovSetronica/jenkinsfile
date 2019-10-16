@@ -1,0 +1,58 @@
+#!/usr/bin/env groovy
+
+pipeline {
+    agent any
+    stages {
+        stage('job parameters') {
+            steps {
+                timeout(time: 300, unit: 'SECONDS') {
+                    script {
+                        input message: '',
+                        parameters: [[
+                            $class: 'ChoiceParameter',
+                            choiceType: 'PT_SINGLE_SELECT',
+                            description: 'Please Provide the name of combostack',
+                            filterLength: 1,
+                            filterable: true,
+                            name: 'List',
+                            randomName: 'choice-parameter-73535330342108',
+                            script: [
+                                $class: 'GroovyScript',
+                                fallbackScript: [
+                                    classpath: [],
+                                    sandbox: false,
+                                    script: 'return["Some error happened"]'
+                                ],
+                                script: [
+                                    classpath: [],
+                                    sandbox: false,
+                                    script: '''def nexus_url = 'http://10.0.10.54'
+                                             def group_id = 'Nexus.nexus'
+                                             def versions = ['DoNotRemove']
+                                             def parser = new XmlParser();
+                                             def xml = parser.parse("${nexus_url}/nexus");
+                                             versions.addAll(
+                                                     xml['data']['artifact']['version'].collect {
+                                                         it->it.value().text()
+                                                     }
+                                                     .sort()
+                                                     .unique()
+                                             )
+                                             return(versions)
+                                             '''
+                                ]
+                            ]
+                        ]]
+                    }
+                }
+            }
+        }
+        stage('Echo params') {
+            steps {
+                script {
+                    sh "echo -e Stack name is ${env.List},\nEnv list fromparams ${params.List},\nEnv is ${List}"
+                }
+            }
+        }
+    }
+}
